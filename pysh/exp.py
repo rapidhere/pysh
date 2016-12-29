@@ -15,7 +15,7 @@ class PyShellException(Exception):
     pass
 
 
-class TermInfoException(Exception):
+class TermInfoException(PyShellException):
     """
     exceptions happened when getting term info
     """
@@ -29,3 +29,11 @@ class TermInfoWrongType(TermInfoException):
     def __init__(self, name: str, _type: type):
         TermInfoException.__init__(
             self, f"cap name `{name}` is not of type `{_type}`")
+
+
+class ArgumentError(PyShellException):
+    """
+    Argument error
+    """
+    def __init__(self, *args, **kwargs):
+        PyShellException.__init__(self, *args, **kwargs)

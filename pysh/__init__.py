@@ -8,12 +8,11 @@ the python shell
 __author__ = "rapidhere"
 __all__ = ("main", )
 
-from . import cl
-
 
 def main() -> None:
     """
     the main entry for shell
     :return:
     """
+    from . import cl
     cl.get_cl().main_loop()

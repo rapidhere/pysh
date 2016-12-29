@@ -18,5 +18,6 @@ def parse_line(line: str) -> CommandInvoke:
     :param line: the line to parse
     :return: the parsed command
     """
-    line = line.strip()
-    return CommandInvoke(line)
+    args = list(filter(lambda s: s, line.strip().split()))
+
+    return CommandInvoke(args[0], *args[1:])

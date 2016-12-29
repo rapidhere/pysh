@@ -15,8 +15,6 @@ import os
 import sys
 import termios
 
-from pysh.runtime import get_env
-from . import parser
 from . import terminfo
 from .terminfo import Key
 
@@ -43,6 +41,22 @@ class CommandLineInterface(object):
         self._last_buff_len = 0
         self._on_erase = False
 
+        # prompt len
+        self._prompt_len = 0
+
+        # parser
+        from . import parser
+        self.lparser = parser
+
+    @property
+    def env(self):
+        """
+        get env
+        :return:
+        """
+        from pysh.runtime import get_env
+        return get_env()
+
     def prepare(self) -> None:
         """
         prepare to start the command line interface
@@ -66,13 +80,15 @@ class CommandLineInterface(object):
 
         while True:
             # display prompt
-            self.put_string(get_env().prompt)
+            self._display_prompt()
 
             # handle input
             self._handle_input()
 
-            cmd_ivk = parser.parse_line(self._buff)
-            get_env().invoke_command(cmd_ivk)
+            cmd_ivk = self.lparser.parse_line(self._buff)
+            res = self.env.invoke_command(cmd_ivk)
+
+            res.display(self)
 
     def put_string(self, string: str) -> None:
         """
@@ -129,11 +145,15 @@ class CommandLineInterface(object):
         display the prompt
         :return:
         """
-        prompt = get_env().prompt
+        # put cursor
+        # TODO: tricky
+        self.cr_left(1000)
+
+        prompt = self.env.prompt
         prompt_len = len(prompt)
 
         self.put_string(prompt)
-        self._cur_line_x = prompt_len
+        self._prompt_len = prompt_len
 
     def _handle_input(self) -> None:
         """
@@ -166,6 +186,10 @@ class CommandLineInterface(object):
         # refresh buff display
         self._display_buff()
         self._last_buff_len = len(self._buff)
+
+        # put cursor
+        self.cr_left(self._last_buff_len + self._prompt_len)
+        self.cr_down()
 
     def _display_buff(self) -> None:
         """

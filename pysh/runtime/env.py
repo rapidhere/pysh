@@ -8,9 +8,9 @@ the runtime env
 __author__ = "rapidhere"
 __all__ = ("RuntimeEnv", "get", "register_command")
 
-from typing import Dict, Callable, Union
+from typing import Dict, Callable
 
-from .cmdobj import CommandInvoke, InvokeResult, Command
+from .cmdobj import CommandInvoke, InvokeResult, Command, CommandArgument
 
 
 class RuntimeEnv(object):
@@ -66,23 +66,29 @@ def get() -> RuntimeEnv:
     return _env
 
 
-def register_command(cmd_name: Union[str, Callable[..., InvokeResult]]):
+def register_command(cmd_name: str):
     """
     a command register decorator
     """
-    def _reg(f, name=None) -> None:
+    def _reg(f: Callable[..., InvokeResult], name=None) -> None:
         if name is None:
             name = f.__name__
 
-        cmd = Command(name, f)
+        # noinspection PyUnresolvedReferences
+        filter_map: dict[str, CommandArgument] = f.__annotations__
+        filters = []
+
+        for key, val in filter_map.items():
+            # set argument name
+            if len(val.argument_name) == 0:
+                val.argument_name = key
+            filters.append(val)
+
+        cmd = Command(name, f, filters)
         get().register_command(cmd)
 
-    if callable(cmd_name):
-        _reg(cmd_name)
-        return cmd_name
-    else:
-        def _f(f: Callable[..., InvokeResult]) -> Callable[..., InvokeResult]:
-            _reg(f, cmd_name)
-            return f
+    def _f(f: Callable[..., InvokeResult]) -> Callable[..., InvokeResult]:
+        _reg(f, cmd_name)
+        return f
 
-        return _f
+    return _f

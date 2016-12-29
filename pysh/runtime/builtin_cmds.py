@@ -9,9 +9,11 @@ __author__ = "rapidhere"
 
 import sys
 
+from .cmdobj import Integer
 from .env import register_command
 
 
 @register_command("exit")
-def _exit():
-    sys.exit(0)
+def _exit(
+        exit_code: Integer(-255, 255, "exit code to return", optional=True) = 0):
+    sys.exit(exit_code)
