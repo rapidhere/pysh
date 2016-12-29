@@ -7,7 +7,6 @@ the shell entry
 """
 __author__ = "rapidhere"
 
-
 import pysh
 
 

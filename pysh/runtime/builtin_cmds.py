@@ -12,6 +12,6 @@ import sys
 from .env import register_command
 
 
-@register_command
-def exit():
+@register_command("exit")
+def _exit():
     sys.exit(0)

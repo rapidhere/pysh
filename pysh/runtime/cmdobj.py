@@ -22,6 +22,13 @@ class CommandInvoke(object):
         self.key_arguments: dict = kwargs
 
 
+class InvokeResult(object):
+    """
+    the result of the command invoking
+    """
+    pass
+
+
 class Command(object):
     """
     a command object
@@ -30,7 +37,7 @@ class Command(object):
         self.name = name
         self.invoker = invoker
 
-    def invoke(self, *args, **kwargs) -> InvokeResult:
+    def invoke(self, args, kwargs) -> InvokeResult:
         """
         invoke a command
         """
@@ -38,10 +45,3 @@ class Command(object):
             return self.invoker(*args, **kwargs)
         else:
             raise NotImplementedError("this command is not finished yet")
-
-
-class InvokeResult(object):
-    """
-    the result of the command invoking
-    """
-    pass

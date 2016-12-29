@@ -19,3 +19,4 @@ def parse_line(line: str) -> CommandInvoke:
     :return: the parsed command
     """
     line = line.strip()
+    return CommandInvoke(line)

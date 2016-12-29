@@ -8,7 +8,7 @@ the runtime env
 __author__ = "rapidhere"
 __all__ = ("RuntimeEnv", "get", "register_command")
 
-from typing import Dict, Callable
+from typing import Dict, Callable, Union
 
 from .cmdobj import CommandInvoke, InvokeResult, Command
 
@@ -19,6 +19,15 @@ class RuntimeEnv(object):
     """
     def __init__(self):
         self._commands: Dict[str, Command] = {}
+
+    @property
+    def prompt(self):
+        """
+        resolve the prompt
+        :return:
+        """
+        # TODO
+        return "> "
 
     def invoke_command(self, cmd_ivk: CommandInvoke) -> InvokeResult:
         """
@@ -57,17 +66,23 @@ def get() -> RuntimeEnv:
     return _env
 
 
-def register_command(cmd_name: str=""):
+def register_command(cmd_name: Union[str, Callable[..., InvokeResult]]):
     """
     a command register decorator
     """
-    def _f(f: Callable[..., InvokeResult]) -> Callable[..., InvokeResult]:
-        nonlocal cmd_name
-        if len(cmd_name) == 0:
-            cmd_name = f.__name__
+    def _reg(f, name=None) -> None:
+        if name is None:
+            name = f.__name__
 
-        cmd = Command(cmd_name, f)
+        cmd = Command(name, f)
         get().register_command(cmd)
-        return f
 
-    return _f
+    if callable(cmd_name):
+        _reg(cmd_name)
+        return cmd_name
+    else:
+        def _f(f: Callable[..., InvokeResult]) -> Callable[..., InvokeResult]:
+            _reg(f, cmd_name)
+            return f
+
+        return _f
