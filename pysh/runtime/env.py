@@ -10,7 +10,7 @@ __all__ = ("RuntimeEnv", "get", "register_command")
 
 from typing import Dict, Callable
 
-from .cmdobj import CommandInvoke, InvokeResult, Command, CommandArgument
+from .cmdobj import CommandInvoke, InvokeResult, Command, CommandArgument, NoSuchCommandInvokeError
 
 
 class RuntimeEnv(object):
@@ -36,6 +36,9 @@ class RuntimeEnv(object):
         :return:
         """
         cmd = self.resolve_command(cmd_ivk.command_name)
+        if cmd is None:
+            return NoSuchCommandInvokeError(cmd_ivk.command_name)
+
         return cmd.invoke(cmd_ivk.arguments, cmd_ivk.key_arguments)
 
     def resolve_command(self, cmd_name: str) -> Command:

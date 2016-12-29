@@ -89,6 +89,7 @@ class CommandLineInterface(object):
             res = self.env.invoke_command(cmd_ivk)
 
             res.display(self)
+            self.cr_down()
 
     def put_string(self, string: str) -> None:
         """

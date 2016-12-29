@@ -9,7 +9,7 @@ __author__ = "rapidhere"
 
 import sys
 
-from .cmdobj import Integer
+from .cmdobj import Integer, String, StringInvokeResult
 from .env import register_command
 
 
@@ -17,3 +17,8 @@ from .env import register_command
 def _exit(
         exit_code: Integer(-255, 255, "exit code to return", optional=True) = 0):
     sys.exit(exit_code)
+
+
+@register_command("echo")
+def echo(content: String("content to display", optional=True) = ""):
+    return StringInvokeResult(0, content)

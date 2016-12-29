@@ -39,6 +39,18 @@ class InvokeResult(object):
         pass  # simply do nothing
 
 
+class StringInvokeResult(InvokeResult):
+    """
+    a simple string invoke result
+    """
+    def __init__(self, ret_code: int, content: str):
+        InvokeResult.__init__(self, ret_code)
+        self.content = content
+
+    def display(self, cl: CommandLineInterface):
+        cl.put_string(self.content)
+
+
 class InvokeError(InvokeResult):
     """
     a invoke error
@@ -50,6 +62,15 @@ class InvokeError(InvokeResult):
 
     def display(self, cl: CommandLineInterface):
         cl.put_string(str(self.error) + "\n")
+
+
+class NoSuchCommandInvokeError(InvokeError):
+    """
+    no such command
+    """
+    def __init__(self, command: str):
+        InvokeError.__init__(self, -1, f"no such command `${command}`")
+        self.command = command
 
 
 class InternalErrorInvokeResult(InvokeError):
@@ -162,3 +183,14 @@ class Integer(CommandArgument):
             return f"require a integer larger than {self._min}"
         else:
             return f"require a integer between {self._min} and {self._max}"
+
+
+class String(CommandArgument):
+    def __init__(self, *args, **kwargs):
+        CommandArgument.__init__(self, *args, **kwargs)
+
+    def filter(self, value: str) -> str:
+        return value
+
+    def fail_message(self) -> str:
+        return "must be a string"
