@@ -69,7 +69,7 @@ class NoSuchCommandInvokeError(InvokeError):
     no such command
     """
     def __init__(self, command: str):
-        InvokeError.__init__(self, -1, f"no such command `${command}`")
+        InvokeError.__init__(self, -1, f"no such command `{command}`")
         self.command = command
 
 
