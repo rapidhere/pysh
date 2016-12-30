@@ -3,8 +3,6 @@
 Ranttu-Inc. rapidhere@gmail.com
 Copyright(c) 2011-2016 ALL RIGHTS RESERVED
 
-the runtime env for pysh
+pysh common shell library
 """
 __author__ = "rapidhere"
-
-from .env import get as get_env

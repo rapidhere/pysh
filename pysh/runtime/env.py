@@ -6,11 +6,8 @@ Copyright(c) 2011-2016 ALL RIGHTS RESERVED
 the runtime env
 """
 __author__ = "rapidhere"
-__all__ = ("RuntimeEnv", "get", "register_command")
 
-from typing import Dict, Callable
-
-from .cmdobj import CommandInvoke, InvokeResult, Command, CommandArgument, NoSuchCommandInvokeError
+from .confman import ConfigManager
 
 
 class RuntimeEnv(object):
@@ -18,40 +15,40 @@ class RuntimeEnv(object):
     the runtime env
     """
     def __init__(self):
-        self._commands: Dict[str, Command] = {}
+        # the true runtime context
+        # can be invoked in shell
+        self._context = {}
 
-    @property
-    def prompt(self):
+        # set config manager
+        self.config = ConfigManager()
+
+        # config env
+        self._context["__env__"] = self
+        self._context["__conf__"] = self.config
+        self._context["resmod"] = self.resolve_module
+
+        # import built-ins
+        self.resolve_module("pysh.lib.builtin")
+
+    def execute(self, cmd_line: str) -> None:
         """
-        resolve the prompt
+        execute a task from cmd line
         :return:
         """
-        # TODO
-        return "> "
+        exec(self.parse(cmd_line), self._context, self._context)
 
-    def invoke_command(self, cmd_ivk: CommandInvoke) -> InvokeResult:
+    def resolve_module(self, module_path: str) -> None:
         """
-        invoke a command
-        :param cmd_ivk: the command invoke
+        resolve a module, and import module contents
         :return:
         """
-        cmd = self.resolve_command(cmd_ivk.command_name)
-        if cmd is None:
-            return NoSuchCommandInvokeError(cmd_ivk.command_name)
+        exec(f"import {module_path}", self._context, self._context)
 
-        return cmd.invoke(cmd_ivk.arguments, cmd_ivk.key_arguments)
-
-    def resolve_command(self, cmd_name: str) -> Command:
+    def parse(self, cmd_line: str):
         """
-        resolve a command to run
+        parse a command line
+        :return:
         """
-        return self._commands.get(cmd_name)
-
-    def register_command(self, cmd: Command) -> None:
-        """
-        register a command
-        """
-        self._commands[cmd.name] = cmd
 
 # the runtime env singleton
 _env = None
@@ -67,31 +64,3 @@ def get() -> RuntimeEnv:
         _env = RuntimeEnv()
 
     return _env
-
-
-def register_command(cmd_name: str):
-    """
-    a command register decorator
-    """
-    def _reg(f: Callable[..., InvokeResult], name=None) -> None:
-        if name is None:
-            name = f.__name__
-
-        # noinspection PyUnresolvedReferences
-        filter_map: dict[str, CommandArgument] = f.__annotations__
-        filters = []
-
-        for key, val in filter_map.items():
-            # set argument name
-            if len(val.argument_name) == 0:
-                val.argument_name = key
-            filters.append(val)
-
-        cmd = Command(name, f, filters)
-        get().register_command(cmd)
-
-    def _f(f: Callable[..., InvokeResult]) -> Callable[..., InvokeResult]:
-        _reg(f, cmd_name)
-        return f
-
-    return _f

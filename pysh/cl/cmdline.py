@@ -44,10 +44,6 @@ class CommandLineInterface(object):
         # prompt len
         self._prompt_len = 0
 
-        # parser
-        from . import parser
-        self.lparser = parser
-
     @property
     def env(self):
         """
@@ -85,8 +81,7 @@ class CommandLineInterface(object):
             # handle input
             self._handle_input()
 
-            cmd_ivk = self.lparser.parse_line(self._buff)
-            res = self.env.invoke_command(cmd_ivk)
+            res = self.env.execute(self._buff)
 
             res.display(self)
             self.cr_down()
@@ -150,7 +145,7 @@ class CommandLineInterface(object):
         # TODO: tricky
         self.cr_left(1000)
 
-        prompt = self.env.prompt
+        prompt = self.env.config.prompt
         prompt_len = len(prompt)
 
         self.put_string(prompt)
