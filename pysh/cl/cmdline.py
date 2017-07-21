@@ -16,7 +16,7 @@ import sys
 import termios
 
 from . import terminfo
-from .terminfo import Key
+from .terminfo import TerminfoKey
 
 
 class CommandLineInterface(object):
@@ -27,7 +27,7 @@ class CommandLineInterface(object):
     """
     def __init__(self):
         # TODO: set encoding
-        self._decoder = codecs.getincrementaldecoder("gbk")()
+        self._decoder = codecs.getincrementaldecoder("utf8")()
         # decoded string
         self._buff: str = ""
 
@@ -43,6 +43,9 @@ class CommandLineInterface(object):
 
         # prompt len
         self._prompt_len = 0
+
+        # terminfo man
+        self._terminfo: terminfo.Terminfo = None
 
     @property
     def env(self):
@@ -60,6 +63,7 @@ class CommandLineInterface(object):
         """
         # ~~~ init term info
         terminfo.init()
+        self._terminfo = terminfo.Terminfo()
 
         # ~~~ setup tty
         self._setup_tty()
@@ -162,18 +166,19 @@ class CommandLineInterface(object):
         self._last_buff_len = 0
 
         while True:
-            b = os.read(self._input_fd, 1)
+            seq = os.read(self._input_fd, 32)
+            key_type = self._terminfo.map_sequence(seq)
 
-            if b in (Key.NEW_LINE, Key.RETURN):
+            if key_type == TerminfoKey.return_key or key_type == TerminfoKey.new_line:
                 self._buff += self._decoder.decode(b'', final=True)
                 break
-            elif b in (Key.BACKSPACE, Key.BACKSPACE_2):
+            elif key_type == TerminfoKey.backspace:
                 if len(self._buff) > 0:
                     self._buff = self._buff[:-1]
                     self._on_erase = True
             else:
                 self._on_erase = False
-                self._buff += self._decoder.decode(b)
+                self._buff += self._decoder.decode(seq)
 
             # refresh buff display
             self._display_buff()
