@@ -31,7 +31,9 @@ class Terminfo(object):
     """
     _terminfo_default_map = {
         b'\010': TerminfoKey.backspace,
-        b'\177': TerminfoKey.backspace
+        b'\177': TerminfoKey.backspace,
+        b'\n': TerminfoKey.new_line,
+        b'\r': TerminfoKey.return_key,
     }
 
     _terminfo_control_map = {

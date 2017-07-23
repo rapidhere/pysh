@@ -30,25 +30,27 @@ class RuntimeEnv(object):
         # import built-ins
         self.resolve_module("pysh.lib.builtin")
 
-    def execute(self, cmd_line: str) -> None:
+    def execute(self, cmd_line: str) -> object:
         """
         execute a task from cmd line
         :return:
         """
-        exec(self.parse(cmd_line), self._context, self._context)
+        return exec(self.parse(cmd_line), self._context, self._context)
 
     def resolve_module(self, module_path: str) -> None:
         """
         resolve a module, and import module contents
         :return:
         """
-        exec(f"import {module_path}", self._context, self._context)
+        exec(f"from {module_path} import *", self._context, self._context)
 
     def parse(self, cmd_line: str):
         """
         parse a command line
         :return:
         """
+
+        return cmd_line
 
 # the runtime env singleton
 _env = None

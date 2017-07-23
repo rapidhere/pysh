@@ -39,7 +39,6 @@ class CommandLineInterface(object):
 
         # last buff len
         self._last_buff_len = 0
-        self._on_erase = False
 
         # prompt len
         self._prompt_len = 0
@@ -87,7 +86,8 @@ class CommandLineInterface(object):
 
             res = self.env.execute(self._buff)
 
-            res.display(self)
+            # res.display(self)
+            os.write(self._output_fd, str(res).encode("utf8"))
             self.cr_down()
 
     def put_string(self, string: str) -> None:
@@ -104,6 +104,13 @@ class CommandLineInterface(object):
         :return:
         """
         os.write(self._output_fd, data)
+
+    def backspace(self) -> None:
+        """
+        backspace
+        :return:
+        """
+        self.put(terminfo.pack("kbs"))
 
     def cr_up(self, dt: int = 1) -> None:
         """
@@ -175,34 +182,18 @@ class CommandLineInterface(object):
             elif key_type == TerminfoKey.backspace:
                 if len(self._buff) > 0:
                     self._buff = self._buff[:-1]
-                    self._on_erase = True
+                    self.backspace()
+                    self.erase(1)
             else:
-                self._on_erase = False
                 self._buff += self._decoder.decode(seq)
+                self.put(seq)
 
             # refresh buff display
-            self._display_buff()
             self._last_buff_len = len(self._buff)
-
-        # refresh buff display
-        self._display_buff()
-        self._last_buff_len = len(self._buff)
 
         # put cursor
         self.cr_left(self._last_buff_len + self._prompt_len)
         self.cr_down()
-
-    def _display_buff(self) -> None:
-        """
-        display buff content
-        :return:
-        """
-        self.cr_left(self._last_buff_len)
-        self.put_string(self._buff)
-
-        # erase last char on need
-        if self._on_erase:
-            self.erase()
 
     def _setup_tty(self) -> None:
         """
